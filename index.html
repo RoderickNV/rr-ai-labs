@@ -6,6 +6,15 @@
     <title>RR AI Labs | AI Ideas from Concept to Launch</title>
     <meta name="description" content="RR AI Labs incubates AI ideas from concept to launch in 5 days. Building the future of health and finance AI.">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RCPYZF2084"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-RCPYZF2084');
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -688,6 +697,85 @@
         }
 
         /* Responsive */
+        /* Waitlist form */
+        .waitlist-form {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            max-width: 440px;
+            margin: 2rem auto 0;
+        }
+
+        .waitlist-form input[type="email"] {
+            flex: 1;
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .waitlist-form input[type="email"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        .waitlist-form input[type="email"]:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .waitlist-form button {
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            background: var(--accent-gradient);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(79, 111, 255, 0.3);
+        }
+
+        .waitlist-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(79, 111, 255, 0.4);
+        }
+
+        .waitlist-form button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .waitlist-msg {
+            text-align: center;
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            min-height: 1.4em;
+        }
+
+        .waitlist-msg.success {
+            color: #10b981;
+        }
+
+        .waitlist-msg.error {
+            color: #ef4444;
+        }
+
+        .waitlist-label {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
@@ -742,6 +830,11 @@
 
             .connect-box {
                 padding: 3rem 2rem;
+            }
+
+            .waitlist-form {
+                flex-direction: column;
+                max-width: 320px;
             }
 
             .connect-buttons {
@@ -811,6 +904,12 @@
                 </a>
                 <a href="#connect" class="btn btn-secondary">Get in Touch</a>
             </div>
+            <p class="waitlist-label">Join the waitlist for early access</p>
+            <form class="waitlist-form" id="waitlistForm">
+                <input type="email" name="email" placeholder="you@email.com" required>
+                <button type="submit">Subscribe</button>
+            </form>
+            <p class="waitlist-msg" id="waitlistMsg"></p>
         </div>
     </section>
 
@@ -970,6 +1069,41 @@
         }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
         document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Waitlist form submission
+        const waitlistForm = document.getElementById('waitlistForm');
+        const waitlistMsg = document.getElementById('waitlistMsg');
+        waitlistForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = waitlistForm.querySelector('button');
+            const email = waitlistForm.querySelector('input[name="email"]').value;
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            waitlistMsg.textContent = '';
+            waitlistMsg.className = 'waitlist-msg';
+            try {
+                const res = await fetch('https://formspree.io/f/mnjgbry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                if (res.ok) {
+                    waitlistMsg.textContent = 'You\'re on the list! We\'ll be in touch.';
+                    waitlistMsg.className = 'waitlist-msg success';
+                    waitlistForm.reset();
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'waitlist_signup', { method: 'hero_form' });
+                    }
+                } else {
+                    throw new Error('Submission failed');
+                }
+            } catch {
+                waitlistMsg.textContent = 'Something went wrong. Please try again.';
+                waitlistMsg.className = 'waitlist-msg error';
+            }
+            btn.disabled = false;
+            btn.textContent = 'Subscribe';
+        });
 
         // Smooth nav background on scroll
         window.addEventListener('scroll', () => {
